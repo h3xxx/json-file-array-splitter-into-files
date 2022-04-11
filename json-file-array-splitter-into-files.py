@@ -74,11 +74,29 @@ def save_json_file(json_content, output_file_path) -> None:
             elif type(json_content) is dict:
                 json.dump(json_content, file, ensure_ascii=True, indent=2, sort_keys=True)
     except OSError as os_error:
-        print_error("Error 1", os_error.strerror)
+        print_error("Error:", os_error.strerror)
     except json.decoder.JSONDecodeError as save_json_error:
         print_error("JSON decode error", save_json_error.msg)
         print("Trying to parse JSON string:")
         print(json_content)
+
+
+def save_lines_to_file(lines, output_file_path) -> None:
+    """
+    Saves lines to output file
+    :param lines:
+    :type lines: list
+    :param output_file_path:
+    :type output_file_path: str
+    :return:
+    :rtype: None
+    """
+    try:
+        with open(output_file_path, 'w') as file:
+            for line in lines:
+                file.write("%s\n" % line)
+    except OSError as os_error:
+        print_error("Error:", os_error.strerror)
 
 
 if __name__ == '__main__':
@@ -99,9 +117,13 @@ if __name__ == '__main__':
                                     'After splitting value the first part will be used as directory name and '
                                     'the second part as filename',
                                required=False, dest="separator")
+    requiredNamed.add_argument('-f', '--file',
+                               help='Output file path to save all processed sections',
+                               required=False, dest="file")
 
     args = parser.parse_args()
 
+    processed_sections = []
     json_path = args.json_path.split("/")
 
     print_info("Loading file", args.input_file_path)
@@ -156,3 +178,9 @@ if __name__ == '__main__':
 
         print(output_file_path)
         save_json_file(data_array_element, output_file_path)
+        processed_sections.append("%%file:%s%%" % output_file_path)
+
+    if args.file:
+        processed_sections.sort()
+        print(type(processed_sections))
+        save_lines_to_file(processed_sections, args.file)
